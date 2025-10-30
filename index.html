@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="MessMate NEXT - Ultimate meal tracking for mess management">
+  <meta name="theme-color" content="#00B4FF">
+  <title>MessMate NEXT</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="/icons/icon-192x192.png" type="image/png">
+  <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="splash-screen" class="splash-screen">
+    <div class="splash-content">
+      <div class="splash-logo">
+        <img src="/icons/icon-192x192.png" alt="MessMate Logo">
+      </div>
+      <h1 class="splash-title">MessMate NEXT</h1>
+      <p class="splash-tagline">Eat. Track. Relax.</p>
+      <div class="splash-spinner"></div>
+    </div>
+  </div>
+
+  <div id="setup-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <h2>Welcome to MessMate NEXT</h2>
+      <p>Let's set up your meal tracking profile</p>
+      <form id="setup-form">
+        <div class="form-group">
+          <label for="user-name">Your Name</label>
+          <input type="text" id="user-name" required placeholder="Enter your name">
+        </div>
+        <div class="form-group">
+          <label for="mess-name">Mess Name</label>
+          <input type="text" id="mess-name" required placeholder="Enter mess name">
+        </div>
+        <div class="form-group">
+          <label for="start-date">Cycle Start Date</label>
+          <input type="date" id="start-date" required>
+        </div>
+        <div class="form-group">
+          <label for="monthly-rate">Monthly Rate (₹)</label>
+          <input type="number" id="monthly-rate" required placeholder="3000">
+        </div>
+        <div class="form-group">
+          <label for="per-meal-rate">Per Meal Rate (₹)</label>
+          <input type="number" id="per-meal-rate" placeholder="Auto-calculated" step="0.01">
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">Start Tracking</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="app" class="app-container" style="display: none;">
+    
+    <div id="meals-view" class="view-container active">
+      <header class="app-header">
+        <div class="header-top">
+          <div class="logo-section">
+            <span class="logo-icon">
+              <img src="/icons/icon-192x192.png" alt="MessMate Logo">
+            </span>
+            <span class="logo-text">MessMate NEXT</span>
+          </div>
+          <button id="theme-toggle" class="icon-btn" aria-label="Toggle theme">
+            <span class="theme-icon">🌙</span>
+          </button>
+        </div>
+        <div class="cycle-info">
+          <span id="cycle-info-text">Days Remaining: --</span>
+        </div>
+      </header>
+
+      <div class="quick-stats">
+        <div class="stat-card stat-taken">
+          <span class="stat-icon">✅</span>
+          <span class="stat-value" id="stat-taken">0</span>
+          <span class="stat-label">Taken</span>
+        </div>
+        <div class="stat-card stat-missed">
+          <span class="stat-icon">❌</span>
+          <span class="stat-value" id="stat-missed">0</span>
+          <span class="stat-label">Missed</span>
+        </div>
+        <div class="stat-card stat-owner">
+          <span class="stat-icon">⚠️</span>
+          <span class="stat-value" id="stat-owner">0</span>
+          <span class="stat-label">Owner</span>
+        </div>
+        <div class="stat-card stat-pending">
+          <span class="stat-icon">⏺️</span>
+          <span class="stat-value" id="stat-pending">0</span>
+          <span class="stat-label">Pending</span>
+        </div>
+      </div>
+
+      <div id="meal-calendar" class="meal-calendar"></div>
+
+      <button id="fab-report" class="fab" aria-label="Generate Report">
+        <span>📄</span>
+      </button>
+    </div>
+
+    <div id="stats-view" class="view-container">
+      <header class="view-header">
+        <h2>Your Meal Stats</h2>
+      </header>
+
+      <div class="stats-metrics">
+        <div class="metric-card">
+          <div class="metric-value" id="metric-total">0</div>
+          <div class="metric-label">Total Meals</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value" id="metric-taken-count">0</div>
+          <div class="metric-label">Meals Taken</div>
+          <div class="metric-subtitle" id="metric-taken-pct">0%</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value" id="metric-missed-count">0</div>
+          <div class="metric-label">Meals Missed</div>
+          <div class="metric-subtitle" id="metric-missed-pct">0%</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value" id="metric-owner-count">0</div>
+          <div class="metric-label">Owner Cancelled</div>
+        </div>
+        <div class="metric-card metric-money">
+          <div class="metric-value" id="metric-money">₹0</div>
+          <div class="metric-label" id="metric-money-label">Amount</div>
+        </div>
+      </div>
+
+      <div class="chart-section">
+        <h3>Meal Distribution</h3>
+        <div class="chart-container">
+          <canvas id="pie-chart"></canvas>
+        </div>
+      </div>
+
+      <button id="export-stats" class="btn btn-primary btn-full">Download Stats Report (PDF)</button>
+    </div>
+
+    <div id="settings-view" class="view-container">
+      <header class="view-header">
+        <h2>Settings</h2>
+      </header>
+
+      <div class="settings-section">
+        <h3>Profile</h3>
+        <div class="form-group">
+          <label for="settings-name">Name</label>
+          <input type="text" id="settings-name" class="form-control">
+        </div>
+        <div class="form-group">
+          <label for="settings-mess">Mess Name</label>
+          <input type="text" id="settings-mess" class="form-control">
+        </div>
+        <div class="form-group">
+          <label for="settings-monthly">Monthly Rate (₹)</label>
+          <input type="number" id="settings-monthly" class="form-control">
+        </div>
+        <div class="form-group">
+          <label for="settings-per-meal">Per Meal Rate (₹)</label>
+          <input type="number" id="settings-per-meal" class="form-control" step="0.01">
+        </div>
+        <button id="save-profile" class="btn btn-secondary">Save Profile</button>
+      </div>
+
+      <div class="settings-section">
+        <h3>Preferences</h3>
+        <div class="setting-item">
+          <span>Theme</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="theme-switch">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3>Cycle Management</h3>
+        <div class="cycle-status" id="cycle-status">
+          <p>Current cycle in progress</p>
+        </div>
+        <button id="end-cycle" class="btn btn-warning">End Current Cycle</button>
+      </div>
+
+      <div class="settings-section">
+        <h3>Data Management</h3>
+        <button id="backup-data" class="btn btn-secondary">Backup Data</button>
+        <button id="restore-data" class="btn btn-secondary">Restore Data</button>
+        <input type="file" id="restore-file" accept=".json" style="display: none;">
+        <button id="clear-data" class="btn btn-error">Clear All Data</button>
+      </div>
+
+      <div class="settings-section">
+        <h3>About</h3>
+        <p><strong>Version:</strong> 1.0.0</p>
+        <p><strong>Tagline:</strong> Eat. Track. Relax.</p>
+        <p class="about-text">The next generation of mess management, built for humans — not spreadsheets.</p>
+      </div>
+    </div>
+
+    <nav class="bottom-nav">
+      <button class="nav-item active" data-view="meals">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-label">Meals</span>
+      </button>
+      <button class="nav-item" data-view="stats">
+        <span class="nav-icon">📊</span>
+        <span class="nav-label">Stats</span>
+      </button>
+      <button class="nav-item" data-view="settings">
+        <span class="nav-icon">⚙️</span>
+        <span class="nav-label">Settings</span>
+      </button>
+    </nav>
+  </div>
+
+  <div id="cycle-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <h2>Cycle Summary</h2>
+      <div class="summary-content" id="summary-content"></div>
+      <div class="modal-actions">
+        <button id="download-report" class="btn btn-primary">Download Report</button>
+        <button id="confirm-new-cycle" class="btn btn-success">Confirm &amp; Start New Cycle</button>
+        <button id="cancel-end-cycle" class="btn btn-secondary">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
